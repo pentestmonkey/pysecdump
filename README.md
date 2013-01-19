@@ -32,11 +32,13 @@ Credits
 This is a derivative work of:
 
 creddump - http://code.google.com/p/creddump/
-         In fact very little of the code is different in pysecdump,
-		 which just pulls data from the registry instead of from on-disk hives
+
+In fact very little of the code is different in pysecdump,
+which just pulls data from the registry instead of from on-disk hives
 
 windows-privesc-check - http://code.google.com/p/windows-privesc-check/
-         This is used mostly for the registry API
+
+This is used mostly for the registry API
 
 I found the metasploit source code very handy for identifying the
 appropriate registry keys, so credit to those guys too for a great tool.
