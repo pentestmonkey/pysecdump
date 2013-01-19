@@ -4,6 +4,7 @@ pysecdump
 Python-based tool to dump security information from Windows systems
 
 OVERVIEW
+========
 
 pysecdump is a python tool to extract various credentials and secrets from
 running Windows systems.  It currently extracts:
