@@ -48,38 +48,51 @@ Nothing if you just want to run pysecdump.exe on a windows system.
 
 If you want to modify pysecdump.py then run recreate the .exe you need:
 
-pywin32 - http://sourceforge.net/projects/pywin32/
-pycrypto - https://www.dlitz.net/software/pycrypto/
-pysinatller - http://www.pyinstaller.org/
+* pywin32 - http://sourceforge.net/projects/pywin32/
+* pycrypto - https://www.dlitz.net/software/pycrypto/
+* pysinatller - http://www.pyinstaller.org/
 
 Usage
 =====
 
 Dump cached domain hashes (run as SYSTEM):
-  usage: ./pysecdump -c
+<pre>
+pysecdump -c
+</pre>
 
 Dump LSA secrets (run as SYSTEM):
-  usage: ./pysecdump -l
+<pre>
+pysecdump -l
+</pre>
 
 Dump local password hashes from SAM (run as SYSTEM):
-  usage: ./pysecdump -s
+<pre>
+pysecdump -s
+</pre>
 
 Dump (some secrets) from Credential Manager (run as SYSTEM):
-  usage: ./pysecdump -C
+<pre>
+pysecdump -C
+</pre>
 
 Impersonate process ID 1234:
-  usage: ./pysecdump -i 1234
-  whoami /all
+<pre>
+pysecdump -i 1234
+whoami /all
+</pre>
 
 Enable all currently held windows privileges (can also use with -i):
-  usage: ./pysecdump -e
-  whoami /priv
+<pre>
+pysecdump -e
+whoami /priv
+</pre>
   
 Converting to .exe
 ==================
-
-  cd C:\pyinstaller-2.0
-  pyinstaller.py -F "c:\somepath\pysecdump.py"
+<pre>
+cd C:\pyinstaller-2.0
+pyinstaller.py -F "c:\somepath\pysecdump.py"
+</pre>
   
 Features
 ========
