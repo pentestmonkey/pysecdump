@@ -3,7 +3,7 @@ pysecdump
 
 Python-based tool to dump security information from Windows systems
 
-OVERVIEW
+Overview
 ========
 
 pysecdump is a python tool to extract various credentials and secrets from
@@ -26,7 +26,8 @@ about this implementation.
 If you think python is cool, this project might be of interest.  If you don't,
 you should probably stop reading now.
 
-CREDITS
+Credits
+=======
 
 This is a derivative work of:
 
@@ -40,7 +41,8 @@ windows-privesc-check - http://code.google.com/p/windows-privesc-check/
 I found the metasploit source code very handy for identifying the
 appropriate registry keys, so credit to those guys too for a great tool.
 
-REQUIREMENTS
+Requirements
+============
 
 Nothing if you just want to run pysecdump.exe on a windows system.
 
@@ -50,7 +52,8 @@ pywin32 - http://sourceforge.net/projects/pywin32/
 pycrypto - https://www.dlitz.net/software/pycrypto/
 pysinatller - http://www.pyinstaller.org/
 
-USAGE
+Usage
+=====
 
 Dump cached domain hashes (run as SYSTEM):
   usage: ./pysecdump -c
@@ -72,18 +75,21 @@ Enable all currently held windows privileges (can also use with -i):
   usage: ./pysecdump -e
   whoami /priv
   
-CONVERTING TO EXE
+Converting to .exe
+==================
 
   cd C:\pyinstaller-2.0
   pyinstaller.py -F "c:\somepath\pysecdump.py"
   
-FEATURES
+Features
+========
 
 * Is written in python
 * Supports XP family and Vista+ registry locations
 * Uses impersonation of all available processes when dumping Credential Manager.
 
-AUTHOR
+Author
+======
 
 pysecdump was adapted from creddump by pentestmonkey.
 
@@ -94,7 +100,8 @@ engineering, check out:
 
 http://moyix.blogspot.com/
 
-LICENSE
+License
+=======
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
