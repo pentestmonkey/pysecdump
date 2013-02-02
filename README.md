@@ -3,7 +3,8 @@ pysecdump
 
 Python-based tool to dump security information from Windows systems
 
-OVERVIEW
+Overview
+========
 
 pysecdump is a python tool to extract various credentials and secrets from
 running Windows systems.  It currently extracts:
@@ -25,64 +26,85 @@ about this implementation.
 If you think python is cool, this project might be of interest.  If you don't,
 you should probably stop reading now.
 
-CREDITS
+Credits
+=======
 
 This is a derivative work of:
 
 creddump - http://code.google.com/p/creddump/
-         In fact very little of the code is different in pysecdump,
-		 which just pulls data from the registry instead of from on-disk hives
+
+In fact very little of the code is different in pysecdump,
+which just pulls data from the registry instead of from on-disk hives
 
 windows-privesc-check - http://code.google.com/p/windows-privesc-check/
-         This is used mostly for the registry API
+
+This is used mostly for the registry API
 
 I found the metasploit source code very handy for identifying the
 appropriate registry keys, so credit to those guys too for a great tool.
 
-REQUIREMENTS
+Requirements
+============
 
 Nothing if you just want to run pysecdump.exe on a windows system.
 
 If you want to modify pysecdump.py then run recreate the .exe you need:
 
-pywin32 - http://sourceforge.net/projects/pywin32/
-pycrypto - https://www.dlitz.net/software/pycrypto/
-pysinatller - http://www.pyinstaller.org/
+* pywin32 - http://sourceforge.net/projects/pywin32/
+* pycrypto - https://www.dlitz.net/software/pycrypto/
+* pysinatller - http://www.pyinstaller.org/
 
-USAGE
+Usage
+=====
 
 Dump cached domain hashes (run as SYSTEM):
-  usage: ./pysecdump -c
+<pre>
+pysecdump -c
+</pre>
 
 Dump LSA secrets (run as SYSTEM):
-  usage: ./pysecdump -l
+<pre>
+pysecdump -l
+</pre>
 
 Dump local password hashes from SAM (run as SYSTEM):
-  usage: ./pysecdump -s
+<pre>
+pysecdump -s
+</pre>
 
 Dump (some secrets) from Credential Manager (run as SYSTEM):
-  usage: ./pysecdump -C
+<pre>
+pysecdump -C
+</pre>
 
 Impersonate process ID 1234:
-  usage: ./pysecdump -i 1234
-  whoami /all
+<pre>
+pysecdump -i 1234
+whoami /all
+</pre>
 
 Enable all currently held windows privileges (can also use with -i):
-  usage: ./pysecdump -e
-  whoami /priv
+<pre>
+pysecdump -e
+whoami /priv
+</pre>
   
-CONVERTING TO EXE
-
-  cd C:\pyinstaller-2.0
-  pyinstaller.py -F "c:\somepath\pysecdump.py"
+Converting to .exe
+==================
+<pre>
+cd C:\pyinstaller-2.0
+pyinstaller.py -F "c:\somepath\pysecdump.py"
+</pre>
   
-FEATURES
+Features
+========
 
 * Is written in python
 * Supports XP family and Vista+ registry locations
 * Uses impersonation of all available processes when dumping Credential Manager.
 
-AUTHOR
+Author
+======
 
 pysecdump was adapted from creddump by pentestmonkey.
 
@@ -93,7 +115,8 @@ engineering, check out:
 
 http://moyix.blogspot.com/
 
-LICENSE
+License
+=======
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
