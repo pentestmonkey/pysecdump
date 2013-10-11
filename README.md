@@ -52,7 +52,7 @@ If you want to modify pysecdump.py then run recreate the .exe you need:
 
 * pywin32 - http://sourceforge.net/projects/pywin32/
 * pycrypto - https://www.dlitz.net/software/pycrypto/
-* pysinatller - http://www.pyinstaller.org/
+* pyinstaller - http://www.pyinstaller.org/
 
 Usage
 =====
