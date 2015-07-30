@@ -111,9 +111,12 @@ def get_secret_by_name(name, lsakey):
     enc_secret = r.get_value("")
 
     if xp:
-      return decrypt_secret(enc_secret[0xC:], lsakey)
+		encryptedSecretSize = unpack('<I', enc_secret[:4])[0]
+		offset = len(enc_secret)-encryptedSecretSize
+		secret = decrypt_secret(enc_secret[offset:], lsakey)
+		return decrypt_secret(enc_secret[0xC:], lsakey)
     else:
-      return decrypt_lsa2(enc_secret, lsakey)
+		return decrypt_lsa2(enc_secret, lsakey)
 
 def get_secrets():
     global xp
@@ -133,7 +136,9 @@ def get_secrets():
 				continue
 			
 			if xp:
-					secret = decrypt_secret(enc_secret[0xC:], lsakey)
+					encryptedSecretSize = unpack('<I', enc_secret[:4])[0]
+					offset = len(enc_secret)-encryptedSecretSize
+					secret = decrypt_secret(enc_secret[offset:], lsakey)
 			else:
 					secret = decrypt_lsa2(enc_secret, lsakey)
 			secrets[service_name] = secret
