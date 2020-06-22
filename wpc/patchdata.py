@@ -37,9 +37,12 @@ class patchdata():
         return self.os['info']
 
     def parse_installed_patches_from_systeminfo(self):
-        output = subprocess.check_output("systeminfo", stderr = open(os.devnull, 'w'))
+        output = subprocess.check_output("systeminfo",
+                                         stderr=open(os.devnull, 'w'))
         for line in output.splitlines():
-            m = re.search("OS Name:\s+.*Windows(?:\(R\))? (7|XP|Server 2003|Vista|Server 2008 R2)", line)
+            m = re.search(
+                "OS Name:\s+.*Windows(?:\(R\))? (7|XP|Server 2003|Vista|Server 2008 R2)",
+                line)
             if m and m.group(1):
                 self.os['info']['winver'] = m.group(1)
 
@@ -57,13 +60,20 @@ class patchdata():
                 self.record_installed_patch(m.group(1))
 
     def get_os_string_for_ms_spreadsheet(self):
-        if not ('spreadsheet_string' in self.os and self.os['spreadsheet_string']):
-            self.os['spreadsheet_string'] = self.guess_os_string_for_ms_spreadsheet()
+        if not ('spreadsheet_string' in self.os
+                and self.os['spreadsheet_string']):
+            self.os[
+                'spreadsheet_string'] = self.guess_os_string_for_ms_spreadsheet(
+                )
         return self.os['spreadsheet_string']
 
     def guess_os_string_for_ms_spreadsheet(self):
         if self.os['info']['winver']:
-            if self.os['info']['winver'].find("XP") > 0 or self.os['info']['winver'].find("2003") > 0 or self.os['info']['winver'].find("NT") > 0 or self.os['info']['winver'].find("2000") > 0:
+            if self.os['info']['winver'].find(
+                    "XP") > 0 or self.os['info']['winver'].find(
+                        "2003") > 0 or self.os['info']['winver'].find(
+                            "NT") > 0 or self.os['info']['winver'].find(
+                                "2000") > 0:
                 os = "Microsoft Windows %s" % self.os['info']['winver']
             else:
                 os = "Windows %s" % self.os['info']['winver']
@@ -79,12 +89,13 @@ class patchdata():
                     os = "%s for 32-bit Systems" % os
 
         if 'sp' in self.os['info'].keys() and self.os['info']['sp']:
-                os = "%s Service Pack %s" % (os, self.os['info']['sp'])
+            os = "%s Service Pack %s" % (os, self.os['info']['sp'])
 
         return os
 
     def is_msno_applied(self, msno):
-        kbs = self.db.get_kbs_from_msno(msno, self.get_os_string_for_ms_spreadsheet())
+        kbs = self.db.get_kbs_from_msno(
+            msno, self.get_os_string_for_ms_spreadsheet())
         for kb in kbs:
             if kb in self.get_installed_patches():
                 return 1
@@ -95,11 +106,11 @@ class patchdata():
         if m and m.group(1):
             msno = m.group(1)
         else:
-            print "[E] Illegal msno passed: %s" % msno
+            print(f"[E] Illegal msno passed: {msno}")
         if self.is_msno_applied(msno):
             if depth == 0:
                 if self.verbose:
-                    print "[+] %s has been patched" % msno
+                    print(f"[+] {msno} has been patched")
             return 1
         else:
             s = self.db.superseding_patch(msno, os)
@@ -110,23 +121,33 @@ class patchdata():
                     if m and m.group(1):
                         if m.group(1) == msno:
                             if self.verbose:
-                                print "[+] %s supersedes %s (ignoring)" % (m.group(1), msno)
+                                print("[+] {} supersedes {} (ignoring)".format(
+                                    m.group(1), msno))
                             continue
 
-                        if self.msno_or_superseded_applied(patch_string, os, depth + 1):
+                        if self.msno_or_superseded_applied(
+                                patch_string, os, depth + 1):
                             at_least_one_superseding_patch_applied = 1
                             if self.verbose:
-                                print "[+] %s supersedes %s (and has been applied)" % (m.group(1), msno)
+                                print(
+                                    "[+] {} supersedes {} (and has been applied)"
+                                    .format(m.group(1), msno))
                             return 1
                         else:
                             if self.verbose:
-                                print "[+] %s supersedes %s (and has NOT been patched)" % (m.group(1), msno)
+                                print(
+                                    "[+] {} supersedes {} (and has NOT been patched)"
+                                    .format(m.group(1), msno))
 
                 if not at_least_one_superseding_patch_applied:
                     if depth == 0 and self.verbose:
-                        print "[+] VULNERABLE.  %s has not been patched.  There are superseding patches but none have been applied." % (msno)
+                        print(
+                            f"[+] VULNERABLE.  {msno} has not been patched.  There are superseding patches but none have been applied."
+                        )
                     return 0
             else:
                 if depth == 0 and self.verbose:
-                    print "[+] VULNERABLE.  %s has not been patched and it has no superseding patches." % (msno)
+                    print(
+                        f"[+] VULNERABLE.  {msno} has not been patched and it has no superseding patches."
+                    )
                 return 0

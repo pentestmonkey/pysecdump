@@ -10,6 +10,7 @@ import ctypes
 OpenThread = ctypes.windll.kernel32.OpenThread
 #OpenThreadToken = ctypes.windll.advapi32.OpenThreadToken
 
+
 class thread:
     def __init__(self, tid):
         self.tid = tid
@@ -32,9 +33,13 @@ class thread:
         #print "[D] get_sd passed th: %s" % self.get_th()
         if not self.sd:
             try:
-             secdesc = win32security.GetSecurityInfo(self.get_th(), win32security.SE_KERNEL_OBJECT, win32security.DACL_SECURITY_INFORMATION | win32security.OWNER_SECURITY_INFORMATION | win32security.GROUP_SECURITY_INFORMATION)
-             #print "[D] secdesc: %s" % secdesc
-             self.sd = sd('thread', secdesc)
+                secdesc = win32security.GetSecurityInfo(
+                    self.get_th(), win32security.SE_KERNEL_OBJECT,
+                    win32security.DACL_SECURITY_INFORMATION
+                    | win32security.OWNER_SECURITY_INFORMATION
+                    | win32security.GROUP_SECURITY_INFORMATION)
+                #print "[D] secdesc: %s" % secdesc
+                self.sd = sd('thread', secdesc)
             except:
                 pass
         #print "[D] get_sd returning: %s" % self.sd
@@ -44,18 +49,23 @@ class thread:
         if not self.th:
             try:
                 # THREAD_ALL_ACCESS needed to get security descriptor
-                self.th = OpenThread(win32con.MAXIMUM_ALLOWED, False, self.get_tid())
+                self.th = OpenThread(win32con.MAXIMUM_ALLOWED, False,
+                                     self.get_tid())
                 #print "Openthread with THREAD_ALL_ACCESS: Success"
             except:
                 try:
                     # THREAD_VM_READ is required to list modules (DLLs, EXE)
-                    self.th = OpenThread(win32con.THREAD_VM_READ | win32con.THREAD_QUERY_INFORMATION, False, self.get_tid())
+                    self.th = OpenThread(
+                        win32con.THREAD_VM_READ
+                        | win32con.THREAD_QUERY_INFORMATION, False,
+                        self.get_tid())
                     #print "Openthread with VM_READ and THREAD_QUERY_INFORMATION: Success"
                 except:
                     #print "Openthread with VM_READ and THREAD_QUERY_INFORMATION: Failed"
                     try:
                         # We can still get some info without THREAD_VM_READ
-                        self.th = OpenThread(win32con.THREAD_QUERY_INFORMATION, False, self.get_tid())
+                        self.th = OpenThread(win32con.THREAD_QUERY_INFORMATION,
+                                             False, self.get_tid())
                         #print "Openthread with THREAD_QUERY_INFORMATION: Success"
                     except:
                         #print "Openthread with THREAD_QUERY_INFORMATION: Failed"
@@ -63,13 +73,15 @@ class thread:
                             # If we have to resort to using THREAD_QUERY_LIMITED_INFORMATION, the thread is protected.
                             # There's no point trying THREAD_VM_READ
                             # Ignore pydev warning.  We define this at runtime because win32con is out of date.
-                            self.th = OpenThread(win32con.THREAD_QUERY_LIMITED_INFORMATION, False, self.get_tid())
+                            self.th = OpenThread(
+                                win32con.THREAD_QUERY_LIMITED_INFORMATION,
+                                False, self.get_tid())
                             #print "Openthread with THREAD_QUERY_LIMITED_INFORMATION: Success"
                         except:
                             #print "Openthread with THREAD_QUERY_LIMITED_INFORMATION: Failed"
                             self.th = None
 #        self.th = win32api.PyHANDLE(self.th)
-        #print "[D] get_th: %s" % self.th
+#print "[D] get_th: %s" % self.th
         return self.th
 
     def get_tth(self):
@@ -77,7 +89,8 @@ class thread:
             import sys
             import pywintypes
             try:
-                self.tth = win32security.OpenThreadToken(self.get_th(), win32con.MAXIMUM_ALLOWED, True)
+                self.tth = win32security.OpenThreadToken(
+                    self.get_th(), win32con.MAXIMUM_ALLOWED, True)
             except pywintypes.error as e:
                 #print sys.exc_info()[0]
                 #print "xxx"
@@ -88,9 +101,11 @@ class thread:
             #    except:
             #        try:
             #            self.tth = win32security.OpenThreadToken(self.get_th(), win32con.TOKEN_QUERY, True)
-                    #print "OpenthreadToken with TOKEN_QUERY: Failed"
+            #print "OpenthreadToken with TOKEN_QUERY: Failed"
             #        except:
             #            pass
+
+
 #        print "[D] TTH: %s" % self.tth
         return self.tth
 

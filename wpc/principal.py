@@ -1,15 +1,16 @@
 import win32security
 import ntsecuritycon
-import _winreg
+import winreg
 import win32service
 import win32con
 import wpc.conf
+
 
 # These have sids, perhaps a domain
 class principal:
     def __init__(self, sid):
         self.name = None
-#        self.info = None
+        #        self.info = None
         self.domain = None
         self.set_sid(sid)
         self.type = None
@@ -43,7 +44,8 @@ class principal:
 
     def get_sid_string(self):
         if self.sid_string == None:
-            self.sid_string = win32security.ConvertSidToStringSid(self.get_sid())
+            self.sid_string = win32security.ConvertSidToStringSid(
+                self.get_sid())
         return self.sid_string
 
     def get_fq_name(self):
@@ -58,10 +60,10 @@ class principal:
         return self.type
 
 #    def get_principal(self):
-        #if self.__class__.__name__ == "principal":
-            #return self
-        #else:
-            #return self.principal
+#if self.__class__.__name__ == "principal":
+#return self
+#else:
+#return self.principal
 
     def get_domain(self):
         if self.domain == None:
@@ -89,8 +91,12 @@ class principal:
 
         self.privileges = []
         try:
-            ph = wpc.conf.cache.LsaOpenPolicy(wpc.conf.remote_server, win32security.POLICY_VIEW_LOCAL_INFORMATION | win32security.POLICY_LOOKUP_NAMES)
-            self.privileges = wpc.conf.cache.LsaEnumerateAccountRights(ph, self.get_sid())
+            ph = wpc.conf.cache.LsaOpenPolicy(
+                wpc.conf.remote_server,
+                win32security.POLICY_VIEW_LOCAL_INFORMATION
+                | win32security.POLICY_LOOKUP_NAMES)
+            self.privileges = wpc.conf.cache.LsaEnumerateAccountRights(
+                ph, self.get_sid())
         except:
             pass
 
@@ -106,13 +112,17 @@ class principal:
             else:
                 try:
                     #print wpc.conf.cache.LookupAccountSid(self.get_remote_server(), self.get_sid())
-                    self.name, domain, type = list(wpc.conf.cache.LookupAccountSid(self.get_remote_server(), self.get_sid()))
+                    self.name, domain, type = list(
+                        wpc.conf.cache.LookupAccountSid(
+                            self.get_remote_server(), self.get_sid()))
                 except:
                     self.cant_resolve = 1
-                    self.name, domain, type = self.get_sid_string(), "[unknown]", 8
+                    self.name, domain, type = self.get_sid_string(
+                    ), "[unknown]", 8
                 self.set_type(type)
                 self.set_domain(domain)
         return self.name
+
 
 #    def is_trusted(self):
 #        for p in wpc.conf.trusted_principals:
@@ -121,7 +131,7 @@ class principal:
 #        return 0
 
     def is_trusted(self):
-#        print "Testing if %s is trusted" % self.get_fq_name()
+        #        print "Testing if %s is trusted" % self.get_fq_name()
         if self.trusted_set:
             #print "Cache result returned for trust of %s: %s" % (self.get_fq_name(), self.trusted)
             return self.trusted
@@ -138,18 +148,18 @@ class principal:
 
         for p in wpc.conf.trusted_principals:
             # This also recurses through sub groups
-#            print "Testing if %s is in %s" % (self.get_fq_name(), p.get_fq_name())
-#            print "[D] pincipal.is_trusted: %s is group? %s" % (p.get_fq_name(), p.is_group_type())
-#            print "[D] self.is_in_group(p): %s" % (self.is_in_group(p))
+            #            print "Testing if %s is in %s" % (self.get_fq_name(), p.get_fq_name())
+            #            print "[D] pincipal.is_trusted: %s is group? %s" % (p.get_fq_name(), p.is_group_type())
+            #            print "[D] self.is_in_group(p): %s" % (self.is_in_group(p))
             if p.is_group_type() and self.is_in_group(p):
-#                print "Yes"
+                #                print "Yes"
                 self.trusted_set = 1
                 self.trusted = 1
-#                print "%s is trusted.  Member of trusted group %s" % (self.get_fq_name(), p.get_fq_name())
+                #                print "%s is trusted.  Member of trusted group %s" % (self.get_fq_name(), p.get_fq_name())
                 return 1
             else:
                 #print "No"
-#                print "User type"
+                #                print "User type"
                 if p.get_sid() == self.get_sid():
                     self.trusted_set = 1
                     self.trusted = 1
@@ -163,4 +173,3 @@ class principal:
     def is_in_group(self, group):
         # print "is_in_group called for %s, %s" % (self.get_fq_name(), group.get_name())
         return wpc.conf.cache.is_in_group(self, group)
-

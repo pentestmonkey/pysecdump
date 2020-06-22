@@ -60,12 +60,18 @@ class mspatchdb():
     def list_os_strings(self):
         oslist = {}
         for row in self.patchspreadsheet:
-            if row['Affected Product'].find("Windows") > -1 and not row['Affected Product'].find("Media Player") > -1 and (row['Affected Product'].find("Windows 7") > -1 or row['Affected Product'].find("XP") > -1 or row['Affected Product'].find("Server 2008") > -1 or row['Affected Product'].find("Server 2003") > -1 or row['Affected Product'].find("Vista")) > -1:
+            if row['Affected Product'].find("Windows") > -1 and not row[
+                    'Affected Product'].find("Media Player") > -1 and (
+                        row['Affected Product'].find("Windows 7") > -1
+                        or row['Affected Product'].find("XP") > -1
+                        or row['Affected Product'].find("Server 2008") > -1
+                        or row['Affected Product'].find("Server 2003") > -1
+                        or row['Affected Product'].find("Vista")) > -1:
                 oslist[row['Affected Product']] = 1
 
-        print "[+] Valid OS strings from xlsx file are:"
+        print("[+] Valid OS strings from xlsx file are:")
         for os in sorted(oslist.keys()):
-            print "%s" % os
+            print(os)
 
     def is_vali_os_string(self, os):
         for row in self.patchspreadsheet:

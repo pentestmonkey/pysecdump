@@ -3,6 +3,7 @@ import win32net
 import win32netcon
 import win32security
 import wpc.file
+
 #from wpc.file import file as wpcfile
 
 
@@ -43,8 +44,8 @@ class cache:
 
     def print_stats(self):
         for k in self.hits.keys():
-            print "Hits for %s: %s" % (k, self.get_hits(k))
-            print "Misses for %s: %s" % (k, self.get_misses(k))
+            print("Hits for %s: %s" % (k, self.get_hits(k)))
+            print("Misses for %s: %s" % (k, self.get_misses(k)))
 
     def sd(self, type, name):
         # TODO caching code here
@@ -75,16 +76,22 @@ class cache:
         return f
 
     def LsaOpenPolicy(self, server, rights):
-        keystring = "%s%%%s" %(server, rights)
+        keystring = "%s%%%s" % (server, rights)
         if not keystring in self.policyhandlefromserverrights.keys():
-            self.policyhandlefromserverrights[keystring] = win32security.LsaOpenPolicy(wpc.conf.remote_server, win32security.POLICY_VIEW_LOCAL_INFORMATION | win32security.POLICY_LOOKUP_NAMES)
+            self.policyhandlefromserverrights[
+                keystring] = win32security.LsaOpenPolicy(
+                    wpc.conf.remote_server,
+                    win32security.POLICY_VIEW_LOCAL_INFORMATION
+                    | win32security.POLICY_LOOKUP_NAMES)
         return self.policyhandlefromserverrights[keystring]
 
     def LsaEnumerateAccountRights(self, handle, sid):
-        keystring = "%s%%%s" %(handle, sid)
+        keystring = "%s%%%s" % (handle, sid)
         if not keystring in self.rightsfromhandlesid.keys():
             try:
-                self.rightsfromhandlesid[keystring] = win32security.LsaEnumerateAccountRights(handle, sid)
+                self.rightsfromhandlesid[
+                    keystring] = win32security.LsaEnumerateAccountRights(
+                        handle, sid)
             except:
                 self.rightsfromhandlesid[keystring] = ""
 
@@ -96,9 +103,11 @@ class cache:
             self.namefromsid[server] = {}
         if not sid in self.namefromsid[server].keys():
             try:
-                self.namefromsid[server][sid] = win32security.LookupAccountSid(server, s)
+                self.namefromsid[server][sid] = win32security.LookupAccountSid(
+                    server, s)
             except:
-                self.namefromsid[server][sid] = (win32security.ConvertSidToStringSid(s), "[unknown]", 8)
+                self.namefromsid[server][sid] = (
+                    win32security.ConvertSidToStringSid(s), "[unknown]", 8)
             self.miss('LookupAccountSid')
         else:
             self.hit('LookupAccountSid')
@@ -110,7 +119,8 @@ class cache:
             self.sidfromname[server] = {}
         if not name in self.sidfromname[server].keys():
             try:
-                self.sidfromname[server][name] = win32security.LookupAccountName(server, name)
+                self.sidfromname[server][
+                    name] = win32security.LookupAccountName(server, name)
             except:
                 self.sidfromname[server][name] = None
             self.miss('LookupAccountName')
@@ -132,9 +142,9 @@ class cache:
         return self.misses[name]
 
     def is_in_group(self, p, group):
-#        print "cache.is_in_group called"
+        #        print "cache.is_in_group called"
         #sid = win32security.ConvertSidToStringSid(s)
-#        print "[D] 1"
+        #        print "[D] 1"
         sid = p.get_sid_string()
         if not sid in self.sidingroup.keys():
             self.sidingroup[sid] = {}
@@ -147,12 +157,15 @@ class cache:
             self.sidingroup[sid][group.get_sid_string()] = 0
             self.miss('is_in_group')
             #print "Miss for is_in_group"
-            if p.get_sid_string() in map(lambda x: x.get_sid_string(), group.get_members()):
+            if p.get_sid_string() in map(lambda x: x.get_sid_string(),
+                                         group.get_members()):
                 self.sidingroup[sid][group.get_sid_string()] = 1
 #            print "[D] 3"
         else:
             #print "Hit for is_in_group"
             self.hit('is_in_group')
+
+
 #        print "Returning: %s" % self.sidingroup[sid][group.get_sid_string()]
         return self.sidingroup[sid][group.get_sid_string()]
 
@@ -162,7 +175,9 @@ class cache:
         members = []
         while keepgoing:
             try:
-                m, total, resume = win32net.NetGroupGetUsers(server, name, level, resume, win32netcon.MAX_PREFERRED_LENGTH)
+                m, total, resume = win32net.NetGroupGetUsers(
+                    server, name, level, resume,
+                    win32netcon.MAX_PREFERRED_LENGTH)
             except:
                 return []
 
@@ -179,7 +194,9 @@ class cache:
         members = []
         while keepgoing:
             try:
-                m, total, resume = win32net.NetLocalGroupGetMembers(server, name, level, resume, win32netcon.MAX_PREFERRED_LENGTH)
+                m, total, resume = win32net.NetLocalGroupGetMembers(
+                    server, name, level, resume,
+                    win32netcon.MAX_PREFERRED_LENGTH)
             except:
                 return []
 

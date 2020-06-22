@@ -27,7 +27,7 @@ on64bitwindows = 1
 #   remote_server can IP be None (should be None if on localhost)
 def init(options):
     # Print banner with version and URL
-#    print_banner()
+    #    print_banner()
 
     # Use some libs.  This will malfunction if we don't use them BEFORE we disable WOW64.
     load_libs()
@@ -50,15 +50,17 @@ def init(options):
     define_trusted_principals()
 
     # Use the crendentials supplied (OK to call if no creds were supplied)
-    impersonate(options.remote_user, options.remote_pass, options.remote_domain)
+    impersonate(options.remote_user, options.remote_pass,
+                options.remote_domain)
 
 
 def get_banner():
-    return "windows-privesc-check v%s (http://pentestmonkey.net/windows-privesc-check)\n" % get_version()
+    return "windows-privesc-check v%s (http://pentestmonkey.net/windows-privesc-check)\n" % get_version(
+    )
 
 
 def print_banner():
-    print get_banner()
+    print(get_banner())
 
 
 def get_version():
@@ -81,11 +83,19 @@ def get_extra_privs():
     # Problem: Vista+ support "Protected" processes, e.g. audiodg.exe.  We can't see info about these.
     # Interesting post on why Protected Process aren't really secure anyway: http://www.alex-ionescu.com/?p=34
 
-    th = win32security.OpenProcessToken(win32api.GetCurrentProcess(), win32con.TOKEN_ADJUST_PRIVILEGES | win32con.TOKEN_QUERY)
-    privs = win32security.GetTokenInformation(th, ntsecuritycon.TokenPrivileges)
+    th = win32security.OpenProcessToken(
+        win32api.GetCurrentProcess(),
+        win32con.TOKEN_ADJUST_PRIVILEGES | win32con.TOKEN_QUERY)
+    privs = win32security.GetTokenInformation(th,
+                                              ntsecuritycon.TokenPrivileges)
     newprivs = []
     for privtuple in privs:
-        if privtuple[0] == win32security.LookupPrivilegeValue(wpc.conf.remote_server, "SeBackupPrivilege") or privtuple[0] == win32security.LookupPrivilegeValue(wpc.conf.remote_server, "SeDebugPrivilege") or privtuple[0] == win32security.LookupPrivilegeValue(wpc.conf.remote_server, "SeSecurityPrivilege"):
+        if privtuple[0] == win32security.LookupPrivilegeValue(
+                wpc.conf.remote_server, "SeBackupPrivilege"
+        ) or privtuple[0] == win32security.LookupPrivilegeValue(
+                wpc.conf.remote_server, "SeDebugPrivilege"
+        ) or privtuple[0] == win32security.LookupPrivilegeValue(
+                wpc.conf.remote_server, "SeSecurityPrivilege"):
             # print "Added privilege " + str(privtuple[0])
             # privtuple[1] = 2 # tuples are immutable.  WHY?!
             newprivs.append((privtuple[0], 2))  # SE_PRIVILEGE_ENABLED
@@ -101,14 +111,13 @@ def load_libs():
     # Load win32security
     #
     # Try to open file and ingore the result.  This gets win32security loaded and working.
-    # We can then turn off WOW64 and call repeatedly.  If we turn off WOW64 first, 
+    # We can then turn off WOW64 and call repeatedly.  If we turn off WOW64 first,
     # win32security will fail to work properly.
     try:
         sd = win32security.GetNamedSecurityInfo(
-            ".",
-            win32security.SE_FILE_OBJECT,
-            win32security.OWNER_SECURITY_INFORMATION | win32security.DACL_SECURITY_INFORMATION
-        )
+            ".", win32security.SE_FILE_OBJECT,
+            win32security.OWNER_SECURITY_INFORMATION
+            | win32security.DACL_SECURITY_INFORMATION)
     except:
         # nothing
         pass
@@ -153,24 +162,35 @@ def enable_wow64():
 def define_trusted_principals():
     # Ignore "NT AUTHORITY\TERMINAL SERVER USER" if HKLM\System\CurrentControlSet\Control\Terminal Server\TSUserEnabled = 0 or doesn't exist
     # See http://support.microsoft.com/kb/238965 for details
-    r = regkey(r"HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Terminal Server")
+    r = regkey(
+        r"HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Terminal Server")
 
     if r.is_present():
         v = r.get_value("TSUserEnabled")
         if v is None:
-            print "[i] TSUserEnabled registry value is absent. Excluding TERMINAL SERVER USER"
+            print(
+                "[i] TSUserEnabled registry value is absent. Excluding TERMINAL SERVER USER"
+            )
         elif v != 0:
-            print "[i] TSUserEnabled registry value is %s. Including TERMINAL SERVER USER" % v
-            wpc.conf.trusted_principals_fq.append("NT AUTHORITY\TERMINAL SERVER USER")
+            print(
+                f"[i] TSUserEnabled registry value is {v}. Including TERMINAL SERVER USER"
+            )
+            wpc.conf.trusted_principals_fq.append(
+                "NT AUTHORITY\TERMINAL SERVER USER")
         else:
-            print "[i] TSUserEnabled registry value is 0. Excluding TERMINAL SERVER USER"
+            print(
+                "[i] TSUserEnabled registry value is 0. Excluding TERMINAL SERVER USER"
+            )
     else:
-        print "[i] TSUserEnabled registry key is absent. Excluding TERMINAL SERVER USER"
-    print
+        print(
+            "[i] TSUserEnabled registry key is absent. Excluding TERMINAL SERVER USER"
+        )
+    print()
 
     for t in wpc.conf.trusted_principals_fq:
         try:
-            sid, name, i = win32security.LookupAccountName(wpc.conf.remote_server, t)
+            sid, name, i = win32security.LookupAccountName(
+                wpc.conf.remote_server, t)
             if sid:
                 p = principal(sid)
                 #print "Trusted: %s (%s) [%s]" % (p.get_fq_name(), p.get_type_string(), p.is_group_type())
@@ -186,7 +206,7 @@ def define_trusted_principals():
                 wpc.conf.trusted_principals.append(p)
 
             else:
-                print "[E] can't look up sid for " + t
+                print(f"[E] can't look up sid for {t}")
         except:
             pass
 
@@ -208,10 +228,10 @@ def define_trusted_principals():
     except:
         pass
 
-    print "Considering these users to be trusted:"
+    print("Considering these users to be trusted:")
     for p in wpc.conf.trusted_principals:
-        print "* " + p.get_fq_name()
-    print
+        print(f"* {p.get_fq_name()}")
+    print()
 
 
 # Walk a directory tree, returning all matching files
@@ -224,23 +244,25 @@ def define_trusted_principals():
 def dirwalk(directory, extensions, include_dirs):
 
     # Compile regular expression for file entension matching
-    re_string = r'\.' + r'$|\.'.join(extensions)  # '\.exe$|\.py$|\.svn-base$|\.com$|\.bat$|\.dll$'
+    re_string = r'\.' + r'$|\.'.join(
+        extensions)  # '\.exe$|\.py$|\.svn-base$|\.com$|\.bat$|\.dll$'
     re_exe = re.compile(re_string, re.IGNORECASE)
 
     for root, dirs, files in oswalk(directory):
-            #print "root=%s, dirs=%s, files=%s" % (root, dirs, files)
-            yield root
+        #print "root=%s, dirs=%s, files=%s" % (root, dirs, files)
+        yield root
 
-            for file in files:
-                m = re_exe.search(file)
-                if m is None:
-                    continue
-                else:
-                    yield root + "\\" + file
+        for file in files:
+            m = re_exe.search(file)
+            if m is None:
+                continue
+            else:
+                yield root + "\\" + file
 
-            if include_dirs:
-                for directory in dirs:
-                    yield root + "\\" + directory
+        if include_dirs:
+            for directory in dirs:
+                yield root + "\\" + directory
+
 
 # Copy of os.walk with minor mod to detect reparse points
 def oswalk(top, topdown=True, onerror=None, followlinks=False):
@@ -273,15 +295,15 @@ def oswalk(top, topdown=True, onerror=None, followlinks=False):
 
 
 def is_reparse_point(d):
-            try:
-                attr = win32api.GetFileAttributes(d)
-                # reparse point http://msdn.microsoft.com/en-us/library/windows/desktop/gg258117(v=vs.85).aspx
-                if attr & 0x400:
-                    print "[D] Is reparse point: %s" % d
-                    return 1
-            except:
-                pass
-            return 0
+    try:
+        attr = win32api.GetFileAttributes(d)
+        # reparse point http://msdn.microsoft.com/en-us/library/windows/desktop/gg258117(v=vs.85).aspx
+        if attr & 0x400:
+            print("[D] Is reparse point: {d}")
+            return 1
+    except:
+        pass
+    return 0
 
 
 # arg s contains windows-style env vars like: %windir%\foo
@@ -305,13 +327,17 @@ def lookup_files_for_clsid(clsid):
     # Potentially intersting subkeys of clsids are listed here:
     # http://msdn.microsoft.com/en-us/library/windows/desktop/ms691424(v=vs.85).aspx
 
-    for v in ("InprocServer", "InprocServer32", "LocalServer", "LocalServer32"):
-        r = regkey("HKEY_LOCAL_MACHINE\\SOFTWARE\\Classes\\CLSID\\" + clsid + "\\" + v)
+    for v in ("InprocServer", "InprocServer32", "LocalServer",
+              "LocalServer32"):
+        r = regkey("HKEY_LOCAL_MACHINE\\SOFTWARE\\Classes\\CLSID\\" + clsid +
+                   "\\" + v)
         if r.is_present:
             d = r.get_value("")  # "(Default)" value
             if d:
                 d = env_expand(d)
                 results.append([r, v, File(d)])
+
+
 #    else:
 #        print "[i] Skipping non-existent clsid: %s" % r.get_name()
 
@@ -341,7 +367,8 @@ def get_exe_path_clean(binary_dirty):
     re1 = re.compile(r'^\\systemroot', re.IGNORECASE)
     binary_dirty = re1.sub(os.getenv('SystemRoot'), binary_dirty)
     re2 = re.compile(r'^system32\\', re.IGNORECASE)
-    binary_dirty = re2.sub(os.getenv('SystemRoot') + r'\\system32\\', binary_dirty)
+    binary_dirty = re2.sub(
+        os.getenv('SystemRoot') + r'\\system32\\', binary_dirty)
     re2 = re.compile(r'^\\\?\?\\', re.IGNORECASE)
     binary_dirty = re2.sub('', binary_dirty)
 
@@ -360,7 +387,8 @@ def get_exe_path_clean(binary_dirty):
             exe_path_clean = candidate
             break
 
-        if os.path.exists(candidate + ".exe") and os.path.isfile(candidate + ".exe"):
+        if os.path.exists(candidate + ".exe") and os.path.isfile(candidate +
+                                                                 ".exe"):
             exe_path_clean = candidate + ".exe"
             break
 
@@ -370,7 +398,8 @@ def get_exe_path_clean(binary_dirty):
                 exe_path_clean = candidate2
                 break
 
-            if os.path.exists(candidate2 + ".exe") and os.path.isfile(candidate2 + ".exe"):
+            if os.path.exists(candidate2 +
+                              ".exe") and os.path.isfile(candidate2 + ".exe"):
                 exe_path_clean = candidate2 + ".exe"
                 break
     return exe_path_clean
@@ -378,31 +407,43 @@ def get_exe_path_clean(binary_dirty):
 
 def impersonate(username, password, domain):
     if username:
-        print "Using alternative credentials:"
-        print "Username: " + str(username)
-        print "Password: " + str(password)
-        print "Domain:   " + str(domain)
-        handle = win32security.LogonUser(username, domain, password, win32security.LOGON32_LOGON_NEW_CREDENTIALS, win32security.LOGON32_PROVIDER_WINNT50)
+        print("Using alternative credentials:")
+        print(f"  Username: {username}")
+        print(f"  Password: {password}")
+        print(f"  Domain:  {domain}")
+        handle = win32security.LogonUser(
+            username, domain, password,
+            win32security.LOGON32_LOGON_NEW_CREDENTIALS,
+            win32security.LOGON32_PROVIDER_WINNT50)
         win32security.ImpersonateLoggedOnUser(handle)
     else:
-        print "[i] Running as current user.  No logon creds supplied (-u, -D, -p)."
-    print
+        print(
+            "[i] Running as current user.  No logon creds supplied (-u, -D, -p)."
+        )
+    print()
+
 
 def populate_scaninfo(report):
     import socket
     import datetime
     report.add_info_item('hostname', socket.gethostname())
-    report.add_info_item('datetime', datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
+    report.add_info_item('datetime',
+                         datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
     report.add_info_item('version', wpc.utils.get_version())
-    report.add_info_item('user', os.environ['USERDOMAIN'] + "\\" + os.environ['USERNAME'])
+    report.add_info_item(
+        'user', os.environ['USERDOMAIN'] + "\\" + os.environ['USERNAME'])
     report.add_info_item('domain', win32api.GetDomainName())
     ver_list = win32api.GetVersionEx(1)
 
     try:
-        report.add_info_item('ipaddress', ",".join(socket.gethostbyname_ex(socket.gethostname())[2]))  # have to do this before Wow64DisableWow64FsRedirection
+        report.add_info_item('ipaddress', ",".join(
+            socket.gethostbyname_ex(socket.gethostname())
+            [2]))  # have to do this before Wow64DisableWow64FsRedirection
     except:
-        report.add_info_item('ipaddress', "<unknown>")  # have to do this before Wow64DisableWow64FsRedirection
-        
+        report.add_info_item(
+            'ipaddress', "<unknown>"
+        )  # have to do this before Wow64DisableWow64FsRedirection
+
     os_ver = str(ver_list[0]) + "." + str(ver_list[1])
     # version numbers from http://msdn.microsoft.com/en-us/library/ms724832(VS.85).aspx
     if os_ver == "4.0":
@@ -423,12 +464,19 @@ def populate_scaninfo(report):
         os_str = "Windows 7"
 
     report.add_info_item('os', os_str)
-    report.add_info_item('os_version', str(ver_list[0]) + "." + str(ver_list[1]) + "." + str(ver_list[2]) + " SP" + str(ver_list[5]))
+    report.add_info_item(
+        'os_version',
+        str(ver_list[0]) + "." + str(ver_list[1]) + "." + str(ver_list[2]) +
+        " SP" + str(ver_list[5]))
+
 
 def get_system_path():
     key_string = 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment'
     try:
-        keyh = win32api.RegOpenKeyEx(win32con.HKEY_LOCAL_MACHINE, key_string , 0, win32con.KEY_ENUMERATE_SUB_KEYS | win32con.KEY_QUERY_VALUE | win32con.KEY_READ)
+        keyh = win32api.RegOpenKeyEx(
+            win32con.HKEY_LOCAL_MACHINE, key_string, 0,
+            win32con.KEY_ENUMERATE_SUB_KEYS | win32con.KEY_QUERY_VALUE
+            | win32con.KEY_READ)
     except:
         return None
 
@@ -442,23 +490,30 @@ def get_system_path():
 
 def get_user_paths():
     try:
-        keyh = win32api.RegOpenKeyEx(win32con.HKEY_USERS, None , 0, win32con.KEY_ENUMERATE_SUB_KEYS | win32con.KEY_QUERY_VALUE | win32con.KEY_READ)
+        keyh = win32api.RegOpenKeyEx(
+            win32con.HKEY_USERS, None, 0, win32con.KEY_ENUMERATE_SUB_KEYS
+            | win32con.KEY_QUERY_VALUE | win32con.KEY_READ)
     except:
         return 0
     paths = []
     subkeys = win32api.RegEnumKeyEx(keyh)
     for subkey in subkeys:
         try:
-            subkeyh = win32api.RegOpenKeyEx(keyh, subkey[0] + "\\Environment" , 0, win32con.KEY_ENUMERATE_SUB_KEYS | win32con.KEY_QUERY_VALUE | win32con.KEY_READ)
+            subkeyh = win32api.RegOpenKeyEx(
+                keyh, subkey[0] + "\\Environment", 0,
+                win32con.KEY_ENUMERATE_SUB_KEYS | win32con.KEY_QUERY_VALUE
+                | win32con.KEY_READ)
         except:
             pass
         else:
             try:
                 path, type = win32api.RegQueryValueEx(subkeyh, "PATH")
                 try:
-                    user_sid  = win32security.ConvertStringSidToSid(subkey[0])
+                    user_sid = win32security.ConvertStringSidToSid(subkey[0])
                 except:
-                    print "WARNING: Can't convert sid %s to name.  Skipping." % subkey[0]
+                    print(
+                        f"WARNING: Can't convert sid {subkey[0]} to name.  Skipping."
+                    )
                     continue
 
                 paths.append(user(user_sid), path)

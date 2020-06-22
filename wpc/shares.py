@@ -10,12 +10,14 @@ class shares:
 
     def get_all(self):
         if self.shares == []:
-            resume = 1;
+            resume = 1
             while resume:
                 resume = 0
                 sharelist = None
                 try:
-                    (sharelist, total, resume) = win32net.NetShareEnum(wpc.conf.remote_server, 0, resume, 9999)
+                    (sharelist, total,
+                     resume) = win32net.NetShareEnum(wpc.conf.remote_server, 0,
+                                                     resume, 9999)
                 except:
                     print "[E] Can't check shares - not enough privs?"
 

@@ -17,7 +17,9 @@ class services:
         return self.type
 
     def add_all(self):
-        for s in win32service.EnumServicesStatus(self.get_scm(), self.get_type(), win32service.SERVICE_STATE_ALL):
+        for s in win32service.EnumServicesStatus(
+                self.get_scm(), self.get_type(),
+                win32service.SERVICE_STATE_ALL):
             short_name = s[0]
             self.add(service(self.get_scm(), short_name))
 
@@ -30,7 +32,9 @@ class services:
 
     def get_scm(self):
         if not self.scm:
-            self.scm = win32service.OpenSCManager(self.get_remote_server(), None, win32service.SC_MANAGER_ENUMERATE_SERVICE)
+            self.scm = win32service.OpenSCManager(
+                self.get_remote_server(), None,
+                win32service.SC_MANAGER_ENUMERATE_SERVICE)
         return self.scm
 
     def get_remote_server(self):

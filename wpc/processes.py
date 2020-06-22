@@ -6,17 +6,18 @@ import wpc.conf
 import ctypes
 import win32con
 
+
 class PROCESSENTRY32(ctypes.Structure):
-    _fields_ = [("dwSize", ctypes.c_ulong),
-                                 ("cntUsage", ctypes.c_ulong),
-                                 ("th32ProcessID", ctypes.c_ulong),
-                                 ("th32DefaultHeapID", ctypes.c_ulong),
-                                 ("th32ModuleID", ctypes.c_ulong),
-                                 ("cntThreads", ctypes.c_ulong),
-                                 ("th32ParentProcessID", ctypes.c_ulong),
-                                 ("pcPriClassBase", ctypes.c_ulong),
-                                 ("dwFlags", ctypes.c_ulong),
-                                 ("szExeFile", ctypes.c_char * 260)]
+    _fields_ = [("dwSize", ctypes.c_ulong), ("cntUsage", ctypes.c_ulong),
+                ("th32ProcessID", ctypes.c_ulong),
+                ("th32DefaultHeapID", ctypes.c_ulong),
+                ("th32ModuleID", ctypes.c_ulong),
+                ("cntThreads", ctypes.c_ulong),
+                ("th32ParentProcessID", ctypes.c_ulong),
+                ("pcPriClassBase", ctypes.c_ulong), ("dwFlags",
+                                                     ctypes.c_ulong),
+                ("szExeFile", ctypes.c_char * 260)]
+
 
 class processes:
     def __init__(self):
@@ -29,7 +30,8 @@ class processes:
         if self.processes == []:
             pids = win32process.EnumProcesses()
             try:
-                proc_infos = win32ts.WTSEnumerateProcesses(wpc.conf.remote_server, 1, 0)
+                proc_infos = win32ts.WTSEnumerateProcesses(
+                    wpc.conf.remote_server, 1, 0)
             except:
                 proc_infos = []
                 pass
@@ -60,7 +62,8 @@ class processes:
             hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0)
             pe32 = PROCESSENTRY32()
             pe32.dwSize = ctypes.sizeof(PROCESSENTRY32)
-            if Process32First(hProcessSnap, ctypes.byref(pe32)) == win32con.FALSE:
+            if Process32First(hProcessSnap,
+                              ctypes.byref(pe32)) == win32con.FALSE:
                 pass
                 #print >> sys.stderr, "Failed getting first process."
                 #return
@@ -70,7 +73,8 @@ class processes:
                     if p:  # might fail to find process - race condition
                         p.set_short_name(pe32.szExeFile)
 
-                    if Process32Next(hProcessSnap, ctypes.byref(pe32)) == win32con.FALSE:
+                    if Process32Next(hProcessSnap,
+                                     ctypes.byref(pe32)) == win32con.FALSE:
                         break
             CloseHandle(hProcessSnap)
 

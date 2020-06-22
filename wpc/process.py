@@ -9,16 +9,14 @@ import win32security
 import wpc.utils
 import ctypes
 
+
 class THREADENTRY32(ctypes.Structure):
-    _fields_ = [
-        ("dwSize", ctypes.c_ulong),
-        ("cntUsage", ctypes.c_ulong),
-        ("th32ThreadID", ctypes.c_ulong),
-        ("th32OwnerProcessID", ctypes.c_ulong),
-        ("tpBasePri", ctypes.c_ulong),
-        ("tpDeltaPri", ctypes.c_ulong),
-        ("dwFlags", ctypes.c_ulong)
-    ]
+    _fields_ = [("dwSize", ctypes.c_ulong), ("cntUsage", ctypes.c_ulong),
+                ("th32ThreadID", ctypes.c_ulong),
+                ("th32OwnerProcessID", ctypes.c_ulong),
+                ("tpBasePri", ctypes.c_ulong), ("tpDeltaPri", ctypes.c_ulong),
+                ("dwFlags", ctypes.c_ulong)]
+
 
 class process:
     def __init__(self, pid):
@@ -60,21 +58,24 @@ class process:
             Thread32Next = ctypes.windll.kernel32.Thread32Next
             CloseHandle = ctypes.windll.kernel32.CloseHandle
 
-            hThreadSnap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, self.get_pid())
+            hThreadSnap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD,
+                                                   self.get_pid())
             te32 = THREADENTRY32()
             te32.dwSize = ctypes.sizeof(THREADENTRY32)
-            if Thread32First(hThreadSnap, ctypes.byref(te32)) == win32con.FALSE:
+            if Thread32First(hThreadSnap,
+                             ctypes.byref(te32)) == win32con.FALSE:
                 pass
                 #print >> sys.stderr, "Failed getting first process."
                 #return
             else:
                 while True:
                     # TODO can we just get thread info for a single process instead?
-#                    print "PID: %s, TID: %s" % (te32.th32OwnerProcessID, te32.th32ThreadID)
+                    #                    print "PID: %s, TID: %s" % (te32.th32OwnerProcessID, te32.th32ThreadID)
                     if self.get_pid() == te32.th32OwnerProcessID:
                         self.add_thread_id(te32.th32ThreadID)
 
-                    if Thread32Next(hThreadSnap, ctypes.byref(te32)) == win32con.FALSE:
+                    if Thread32Next(hThreadSnap,
+                                    ctypes.byref(te32)) == win32con.FALSE:
                         break
             CloseHandle(hThreadSnap)
         return sorted(self.thread_ids)
@@ -88,7 +89,7 @@ class process:
         # Process Token
         tok = self.get_token()
         if tok:
-                self.token_handles.append(tok)
+            self.token_handles.append(tok)
 
         # Thread Tokens
         for t in self.get_threads():
@@ -103,14 +104,13 @@ class process:
         for t in self.get_tokens():
             self.token_handles_int.append(t.get_th_int())
 
-        return self.token_handles_int 
+        return self.token_handles_int
 
     def get_threads(self):
         if not self.threads:
             for t in self.get_thread_ids():
                 self.add_thread(thread(t))
         return self.threads
-
 
     def set_wts_name(self, wts_name):
         self.wts_name = wts_name
@@ -139,7 +139,11 @@ class process:
     def get_sd(self):
         if not self.sd:
             try:
-                secdesc = win32security.GetSecurityInfo(self.get_ph(), win32security.SE_KERNEL_OBJECT, win32security.DACL_SECURITY_INFORMATION | win32security.OWNER_SECURITY_INFORMATION | win32security.GROUP_SECURITY_INFORMATION)
+                secdesc = win32security.GetSecurityInfo(
+                    self.get_ph(), win32security.SE_KERNEL_OBJECT,
+                    win32security.DACL_SECURITY_INFORMATION
+                    | win32security.OWNER_SECURITY_INFORMATION
+                    | win32security.GROUP_SECURITY_INFORMATION)
                 self.sd = sd('process', secdesc)
             except:
                 pass
@@ -167,7 +171,8 @@ class process:
 
     def get_exe_path_clean(self):
         if not self.exe_path_clean:
-            self.exe_path_clean = wpc.utils.get_exe_path_clean(self.get_exe_path_dirty())
+            self.exe_path_clean = wpc.utils.get_exe_path_clean(
+                self.get_exe_path_dirty())
             if not self.exe_path_clean:
                 self.exe_path_clean = self.get_exe_path_dirty()
         return self.exe_path_clean
@@ -175,7 +180,9 @@ class process:
     def get_exe_path_dirty(self):
         if not self.exe_path_dirty:
             if self.get_mhs():
-                self.exe_path_dirty = win32process.GetModuleFileNameEx(self.get_ph(), self.get_mhs().pop(0))
+                self.exe_path_dirty = win32process.GetModuleFileNameEx(
+                    self.get_ph(),
+                    self.get_mhs().pop(0))
         return self.exe_path_dirty
 
     def get_exe(self):
@@ -188,18 +195,24 @@ class process:
         if not self.ph:
             try:
                 # PROCESS_ALL_ACCESS needed to get security descriptor
-                self.ph = win32api.OpenProcess(win32con.PROCESS_ALL_ACCESS, False, self.get_pid())
+                self.ph = win32api.OpenProcess(win32con.PROCESS_ALL_ACCESS,
+                                               False, self.get_pid())
                 #print "OpenProcess with PROCESS_ALL_ACCESS: Success"
             except:
                 try:
                     # PROCESS_VM_READ is required to list modules (DLLs, EXE)
-                    self.ph = win32api.OpenProcess(win32con.PROCESS_VM_READ | win32con.PROCESS_QUERY_INFORMATION, False, self.get_pid())
+                    self.ph = win32api.OpenProcess(
+                        win32con.PROCESS_VM_READ
+                        | win32con.PROCESS_QUERY_INFORMATION, False,
+                        self.get_pid())
                     #print "OpenProcess with VM_READ and PROCESS_QUERY_INFORMATION: Success"
                 except:
                     #print "OpenProcess with VM_READ and PROCESS_QUERY_INFORMATION: Failed"
                     try:
                         # We can still get some info without PROCESS_VM_READ
-                        self.ph = win32api.OpenProcess(win32con.PROCESS_QUERY_INFORMATION, False, self.get_pid())
+                        self.ph = win32api.OpenProcess(
+                            win32con.PROCESS_QUERY_INFORMATION, False,
+                            self.get_pid())
                         #print "OpenProcess with PROCESS_QUERY_INFORMATION: Success"
                     except:
                         #print "OpenProcess with PROCESS_QUERY_INFORMATION: Failed"
@@ -207,7 +220,9 @@ class process:
                             # If we have to resort to using PROCESS_QUERY_LIMITED_INFORMATION, the process is protected.
                             # There's no point trying PROCESS_VM_READ
                             # Ignore pydev warning.  We define this at runtime because win32con is out of date.
-                            self.ph = win32api.OpenProcess(win32con.PROCESS_QUERY_LIMITED_INFORMATION, False, self.get_pid())
+                            self.ph = win32api.OpenProcess(
+                                win32con.PROCESS_QUERY_LIMITED_INFORMATION,
+                                False, self.get_pid())
                             #print "OpenProcess with PROCESS_QUERY_LIMITED_INFORMATION: Success"
                         except:
                             #print "OpenProcess with PROCESS_QUERY_LIMITED_INFORMATION: Failed"
@@ -217,13 +232,16 @@ class process:
     def get_pth(self):
         if not self.pth:
             try:
-                self.pth = win32security.OpenProcessToken(self.get_ph(), win32con.MAXIMUM_ALLOWED)
+                self.pth = win32security.OpenProcessToken(
+                    self.get_ph(), win32con.MAXIMUM_ALLOWED)
             except:
                 try:
-                    self.pth = win32security.OpenProcessToken(self.get_ph(), win32con.TOKEN_READ)
+                    self.pth = win32security.OpenProcessToken(
+                        self.get_ph(), win32con.TOKEN_READ)
                 except:
                     try:
-                        self.pth = win32security.OpenProcessToken(self.get_ph(), win32con.TOKEN_QUERY)
+                        self.pth = win32security.OpenProcessToken(
+                            self.get_ph(), win32con.TOKEN_QUERY)
                     #print "OpenProcessToken with TOKEN_QUERY: Failed"
                     except:
                         pass
@@ -248,13 +266,16 @@ class process:
         t += "WTS Name:       " + str(self.get_wts_name()) + "\n"
         t += "WTS Session ID: " + str(self.get_wts_session_id()) + "\n"
         if self.get_wts_sid():
-            t += "WTS Sid:        " + str(self.get_wts_sid().get_fq_name()) + "\n"
+            t += "WTS Sid:        " + str(
+                self.get_wts_sid().get_fq_name()) + "\n"
         else:
             t += "WTS Sid:        None\n"
         t += "Access Token Count: %s\n" % len(self.get_token_handles_int())
-        t += "Access Token Handles: %s\n" % ",".join(str(x) for x in self.get_token_handles_int())
+        t += "Access Token Handles: %s\n" % ",".join(
+            str(x) for x in self.get_token_handles_int())
         t += "Thread Count:   %s\n" % self.get_thread_count()
-        t += "Thread IDs:     %s\n" % ",".join(str(x) for x in self.get_thread_ids())
+        t += "Thread IDs:     %s\n" % ",".join(
+            str(x) for x in self.get_thread_ids())
         if self.get_ph():
             t += "Is WOW64:       " + str(self.is_wow64()) + "\n"
             if self.get_exe():

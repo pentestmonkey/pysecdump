@@ -43,9 +43,11 @@ class service:
     # get the maximum info about each service.
 
     def get_sh_query_config(self):
-        if not self.sh_query_config:    
+        if not self.sh_query_config:
             try:
-                self.sh_query_config = win32service.OpenService(self.get_scm(), self.get_name(), win32service.SERVICE_QUERY_CONFIG)
+                self.sh_query_config = win32service.OpenService(
+                    self.get_scm(), self.get_name(),
+                    win32service.SERVICE_QUERY_CONFIG)
 
             except:
                 print "Service Perms: Unknown (Access Denied)"
@@ -55,7 +57,9 @@ class service:
     def get_sh_query_status(self):
         if not self.sh_query_status:
             try:
-                self.sh_query_status = win32service.OpenService(self.get_scm(), self.get_name(), win32service.SERVICE_QUERY_STATUS)
+                self.sh_query_status = win32service.OpenService(
+                    self.get_scm(), self.get_name(),
+                    win32service.SERVICE_QUERY_STATUS)
             except:
                 pass
         return self.sh_query_status
@@ -63,7 +67,8 @@ class service:
     def get_sh_read_control(self):
         if not self.sh_read_control:
             try:
-                self.sh_read_control = win32service.OpenService(self.get_scm(), self.get_name(), win32con.READ_CONTROL)
+                self.sh_read_control = win32service.OpenService(
+                    self.get_scm(), self.get_name(), win32con.READ_CONTROL)
             except:
                 pass
         return self.sh_read_control
@@ -88,10 +93,14 @@ class service:
         if not self.sd:
             # Need a handle with generic_read
             try:
-                secdesc = win32service.QueryServiceObjectSecurity(self.get_sh_read_control(), win32security.OWNER_SECURITY_INFORMATION | win32security.DACL_SECURITY_INFORMATION)
+                secdesc = win32service.QueryServiceObjectSecurity(
+                    self.get_sh_read_control(),
+                    win32security.OWNER_SECURITY_INFORMATION
+                    | win32security.DACL_SECURITY_INFORMATION)
                 self.sd = sd('service', secdesc)
             except:
-                print "ERROR: OpenService failed for '%s' (%s)" % (self.get_description(), self.get_name())
+                print "ERROR: OpenService failed for '%s' (%s)" % (
+                    self.get_description(), self.get_name())
 
         return self.sd
 
@@ -125,7 +134,8 @@ class service:
             re1 = re.compile(r'^\\systemroot', re.IGNORECASE)
             binary_dirty = re1.sub(os.getenv('SystemRoot'), binary_dirty)
             re2 = re.compile(r'^system32\\', re.IGNORECASE)
-            binary_dirty = re2.sub(os.getenv('SystemRoot') + r'\\system32\\', binary_dirty)
+            binary_dirty = re2.sub(
+                os.getenv('SystemRoot') + r'\\system32\\', binary_dirty)
             re2 = re.compile(r'^\\\?\?\\', re.IGNORECASE)
             binary_dirty = re2.sub('', binary_dirty)
 
@@ -144,17 +154,22 @@ class service:
                     self.exe_path_clean = candidate
                     break
 
-                if os.path.exists(candidate + ".exe") and os.path.isfile(candidate + ".exe"):
+                if os.path.exists(candidate +
+                                  ".exe") and os.path.isfile(candidate +
+                                                             ".exe"):
                     self.exe_path_clean = candidate + ".exe"
                     break
 
                 if wpc.conf.on64bitwindows:
                     candidate2 = candidate.replace("system32", "syswow64")
-                    if os.path.exists(candidate2) and os.path.isfile(candidate2):
+                    if os.path.exists(candidate2) and os.path.isfile(
+                            candidate2):
                         self.exe_path_clean = candidate2
                         break
 
-                    if os.path.exists(candidate2 + ".exe") and os.path.isfile(candidate2 + ".exe"):
+                    if os.path.exists(candidate2 +
+                                      ".exe") and os.path.isfile(candidate2 +
+                                                                 ".exe"):
                         self.exe_path_clean = candidate2 + ".exe"
                         break
         return self.exe_path_clean
@@ -216,7 +231,8 @@ class service:
     def get_service_info(self, n):
         if not self.service_info:
             try:
-                self.service_info = win32service.QueryServiceConfig(self.get_sh_query_config())
+                self.service_info = win32service.QueryServiceConfig(
+                    self.get_sh_query_config())
             except:
                 pass
 
@@ -228,7 +244,9 @@ class service:
     def get_service_config_failure_actions(self):
         if not self.service_config_failure_actions:
             try:
-                self.service_config_failure_actions = win32service.QueryServiceConfig2(self.get_sh_query_config(), win32service.SERVICE_CONFIG_FAILURE_ACTIONS)
+                self.service_config_failure_actions = win32service.QueryServiceConfig2(
+                    self.get_sh_query_config(),
+                    win32service.SERVICE_CONFIG_FAILURE_ACTIONS)
             except:
                 pass
             if not self.service_config_failure_actions:
@@ -238,7 +256,9 @@ class service:
     def get_service_sid_type(self):
         if not self.service_sid_type:
             try:
-                self.service_sid_type = win32service.QueryServiceConfig2(self.get_sh_query_config(), win32service.SERVICE_CONFIG_SERVICE_SID_INFO)
+                self.service_sid_type = win32service.QueryServiceConfig2(
+                    self.get_sh_query_config(),
+                    win32service.SERVICE_CONFIG_SERVICE_SID_INFO)
                 if self.service_sid_type == 0:
                     self.service_sid_type = "SERVICE_SID_TYPE_NONE"
                 if self.service_sid_type == 1:
@@ -252,7 +272,9 @@ class service:
     def get_long_description(self):
         if not self.long_description:
             try:
-                self.long_description = win32service.QueryServiceConfig2(self.get_sh_query_config(), win32service.SERVICE_CONFIG_DESCRIPTION)
+                self.long_description = win32service.QueryServiceConfig2(
+                    self.get_sh_query_config(),
+                    win32service.SERVICE_CONFIG_DESCRIPTION)
             except:
                 pass
             if not self.long_description:
@@ -273,7 +295,9 @@ class service:
         t += "Type:           " + str(self.get_type()) + "\n"
         t += "Status:         " + str(self.get_status()) + "\n"
         t += "Startup:        " + str(self.get_startup_type()) + "\n"
-        t += "Long Desc:      " + self.removeNonAscii(self.get_long_description()) + "\n"  # in case of stupid chars in desc
+        t += "Long Desc:      " + self.removeNonAscii(
+            self.get_long_description(
+            )) + "\n"  # in case of stupid chars in desc
         t += "Binary:         " + self.get_exe_path() + "\n"
         if self.get_exe_path_clean():
             t += "Binary (clean): " + self.get_exe_path_clean() + "\n"
@@ -316,8 +340,10 @@ class service:
 
     def get_reg_key(self):
         if not self.reg_key:
-            self.reg_key = regkey("HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\" + self.get_name())
+            self.reg_key = regkey(
+                "HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\" +
+                self.get_name())
         return self.reg_key
 
-    def removeNonAscii(self, s): 
+    def removeNonAscii(self, s):
         return "".join(i for i in s if ord(i) < 128)

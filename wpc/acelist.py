@@ -73,4 +73,4 @@ class acelist:
 
     def as_text(self):
         for ace in self.get_aces():
-            print ace.as_text()
+            print(ace.as_text())

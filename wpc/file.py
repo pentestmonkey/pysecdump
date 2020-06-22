@@ -26,6 +26,7 @@ class file:
             self.type = 'file'
         self.sd = None
 
+
 #    def clearmem(self):
 #        self.name = None
 #        self.type = None
@@ -41,7 +42,7 @@ class file:
         return s
 
     def dump(self):
-        print self.as_text()
+        print(self.as_text())
 
     def get_name(self):
         return self.name
@@ -72,7 +73,8 @@ class file:
 
     def get_file_acl_for_perms(self, perms):
         if self.get_sd():
-            al = self.get_sd().get_acelist().get_untrusted().get_aces_with_perms(perms).get_aces()
+            al = self.get_sd().get_acelist().get_untrusted(
+            ).get_aces_with_perms(perms).get_aces()
             if al == []:
                 return None
             else:
@@ -84,14 +86,16 @@ class file:
             #print "[D] ACE: "
             #for a in self.get_sd().get_acelist().get_dangerous_perms().get_aces():
             #    print a.as_text()
-            return self.get_sd().get_acelist().get_untrusted().get_dangerous_perms().get_aces()
+            return self.get_sd().get_acelist().get_untrusted(
+            ).get_dangerous_perms().get_aces()
         except:
             return []
 
     # Can an untrusted user replace this file/dir? TODO unused
     def is_replaceable(self):
         if not self.exists():
-            print "[W] is_replaceable called for non-existent file %s" % self.get_name()
+            print("[W] is_replaceable called for non-existent file %s" %
+                  self.get_name())
             return 0
 
         # There are a few things that could cause a file/dir to be replacable.  Firstly let's define "replaceable":
@@ -132,7 +136,9 @@ class file:
             # 9. Parent dir (or any parent thereof) allows WRITE_DAC for an untrusted user
             # 10. Parent dir (or any parent thereof) allows WRITE_OWNER for an untrusted user
             # Also see below for a recursive check of parent directories
-            if not self.get_sd().get_acelist().get_untrusted().get_aces_with_perms(["FILE_WRITE_DAC", "FILE_WRITE_OWNER"]).get_aces() == []:
+            if not self.get_sd().get_acelist().get_untrusted(
+            ).get_aces_with_perms(["FILE_WRITE_DAC", "FILE_WRITE_OWNER"
+                                   ]).get_aces() == []:
                 self.replaceable_set = 1
                 self.replaceable = 1
                 return 1
@@ -141,48 +147,65 @@ class file:
         if self.type == 'file':
             if self.get_sd():
                 # 4. File allows FILE_WRITE_DATA for an untrusted user
-                if not self.get_sd().get_acelist().get_untrusted().get_aces_with_perms(["FILE_WRITE_DATA"]).get_aces() == []:
+                if not self.get_sd().get_acelist().get_untrusted(
+                ).get_aces_with_perms(["FILE_WRITE_DATA"]).get_aces() == []:
                     self.replaceable_set = 1
                     self.replaceable = 1
                     return 1
 
                 # 5. File allows DELETE and parent dir allows FILE_ADD_FILE for an untrusted user
-                if not self.get_sd().get_acelist().get_untrusted().get_aces_with_perms(["DELETE"]).get_aces() == []:
+                if not self.get_sd().get_acelist().get_untrusted(
+                ).get_aces_with_perms(["DELETE"]).get_aces() == []:
                     if self.get_parent_dir().get_sd():
-                        if not self.get_parent_dir().get_sd().get_acelist().get_untrusted().get_aces_with_perms(["FILE_ADD_FILE"]).get_aces() == []:
+                        if not self.get_parent_dir().get_sd().get_acelist(
+                        ).get_untrusted().get_aces_with_perms(
+                            ["FILE_ADD_FILE"]).get_aces() == []:
                             self.replaceable_set = 1
                             self.replaceable = 1
                             return 1
 
                 # 6. Parent dir allows FILE_DELETE_CHILD and FILE_ADD_FILE for an untrusted user
-                # NB: We don't require that a single ACE contains both perms.  If untrusted user x has FILE_DELETE_CHILD and untrusted user y has perm FILE_ADD_FILE, 
+                # NB: We don't require that a single ACE contains both perms.  If untrusted user x has FILE_DELETE_CHILD and untrusted user y has perm FILE_ADD_FILE,
                 # this is still insecure.
                 if self.get_parent_dir().get_sd():
-                    if not self.get_parent_dir().get_sd().get_acelist().get_untrusted().get_aces_with_perms(["FILE_ADD_FILE"]).get_aces() == [] and not self.get_parent_dir().get_sd().get_acelist().get_untrusted().get_aces_with_perms(["FILE_DELETE_CHILD"]).get_aces() == []:
+                    if not self.get_parent_dir().get_sd(
+                    ).get_acelist().get_untrusted().get_aces_with_perms([
+                            "FILE_ADD_FILE"
+                    ]).get_aces() == [] and not self.get_parent_dir().get_sd(
+                    ).get_acelist().get_untrusted().get_aces_with_perms(
+                        ["FILE_DELETE_CHILD"]).get_aces() == []:
                         self.replaceable_set = 1
                         self.replaceable = 1
-                        return 1    
+                        return 1
 
         if self.type == 'dir':
             # 7. Parent of directory or grandparent of file allows FILE_DELETE_CHILD and FILE_ADD_SUBFOLDER by untrusted user
             # 8. Parent dir allows DELETE by untrusted user and its parent allows FILE_ADD_SUBFOLDER
             if self.get_sd():
-                if not self.get_sd().get_acelist().get_untrusted().get_aces_with_perms(["DELETE"]).get_aces() == []:
-                    if self.get_parent_dir() and self.get_parent_dir().get_sd():
-                        if not self.get_parent_dir().get_sd().get_acelist().get_untrusted().get_aces_with_perms(["FILE_ADD_SUBFOLDER"]).get_aces() == []:
+                if not self.get_sd().get_acelist().get_untrusted(
+                ).get_aces_with_perms(["DELETE"]).get_aces() == []:
+                    if self.get_parent_dir() and self.get_parent_dir().get_sd(
+                    ):
+                        if not self.get_parent_dir().get_sd().get_acelist(
+                        ).get_untrusted().get_aces_with_perms(
+                            ["FILE_ADD_SUBFOLDER"]).get_aces() == []:
                             self.replaceable_set = 1
                             self.replaceable = 1
                             return 1
 
             if self.get_parent_dir() and self.get_parent_dir().get_sd():
-                if not self.get_parent_dir().get_sd().get_acelist().get_untrusted().get_aces_with_perms(["FILE_DELETE_CHILD", "FILE_ADD_SUBFOLDER"]).get_aces() == []:
+                if not self.get_parent_dir().get_sd().get_acelist(
+                ).get_untrusted().get_aces_with_perms([
+                        "FILE_DELETE_CHILD", "FILE_ADD_SUBFOLDER"
+                ]).get_aces() == []:
                     self.replaceable_set = 1
                     self.replaceable = 1
                     return 1
 
         # Recursive check of parent directories
         # 0: A file/dir can be replaced if it's parent dir can be replaced (doesn't really count as it's a recursive definition)
-        if self.get_parent_dir() and self.get_parent_dir().get_name() != self.get_name(): # "\" has parent of "\"
+        if self.get_parent_dir() and self.get_parent_dir().get_name(
+        ) != self.get_name():  # "\" has parent of "\"
             if self.get_parent_dir().is_replaceable():
                 self.replaceable_set = 1
                 self.replaceable = 1
@@ -207,12 +230,12 @@ class file:
                 self.parent_dir = wpc.conf.cache.File(parentpath)
         #        print self.parent_dir
             else:
-        #        print "[D] no parent dir"
+                #        print "[D] no parent dir"
                 self.parent_dir = None
         #if self.parent_dir:
-            #print "get_parent_dir returning: " + str(self.parent_dir.get_name())
+        #print "get_parent_dir returning: " + str(self.parent_dir.get_name())
         #else:
-            #print "get_parent_dir returning: None"
+        #print "get_parent_dir returning: None"
         return self.parent_dir
 
     def get_sd(self):
@@ -220,16 +243,16 @@ class file:
             #sd = None
             try:
                 sd = self.sd = win32security.GetNamedSecurityInfo(
-                    self.get_name(),
-                    win32security.SE_FILE_OBJECT,
-                    win32security.OWNER_SECURITY_INFORMATION | win32security.DACL_SECURITY_INFORMATION
-                )
+                    self.get_name(), win32security.SE_FILE_OBJECT,
+                    win32security.OWNER_SECURITY_INFORMATION
+                    | win32security.DACL_SECURITY_INFORMATION)
                 if self.is_dir():
                     self.sd = wpc.conf.cache.sd('directory', sd)
                 else:
                     self.sd = wpc.conf.cache.sd('file', sd)
             except:
-                print "WARNING: Can't get security descriptor for file: " + self.get_name()
+                print("WARNING: Can't get security descriptor for file: " +
+                      self.get_name())
                 self.sd = None
 
         return self.sd

@@ -55,7 +55,7 @@ class sd(acelist):
         return s
 
     def dump(self):
-        print self.as_text()
+        print(self.as_text())
 
     def perms_for(self, principal):
         # TODO use all_perms above
@@ -118,7 +118,8 @@ class sd(acelist):
 
     def get_owner_name(self):
         if self.owner_name == None:
-            self.owner_name = win32security.ConvertSidToStringSid(self.get_owner_sid)
+            self.owner_name = win32security.ConvertSidToStringSid(
+                self.get_owner_sid)
         return self.owner_name
 
     def set_owner_name(self, name):
@@ -128,7 +129,8 @@ class sd(acelist):
         self.owner_domain = name
 
     def get_owner_tuple(self):
-        owner_name, owner_domain, type = wpc.conf.cache.LookupAccountSid(self.get_remote_server(), self.get_owner_sid())
+        owner_name, owner_domain, type = wpc.conf.cache.LookupAccountSid(
+            self.get_remote_server(), self.get_owner_sid())
         self.set_owner_name(owner_name)
         self.set_owner_domain(owner_domain)
         return owner_name, owner_domain, type
@@ -162,6 +164,6 @@ class sd(acelist):
                 if not a.get_principal().is_trusted():
                     s += a.as_text() + "\n"
             else:
-                s += a.as_text() + "\n"            
+                s += a.as_text() + "\n"
         s += "--- end security descriptor ---\n"
         return s

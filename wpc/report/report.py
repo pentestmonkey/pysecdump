@@ -200,7 +200,7 @@ class report():
 
 </xsl:stylesheet>
         '''
-        
+
     def get_issues(self):
         return self.issues
 
@@ -220,7 +220,7 @@ class report():
 
     def as_xml(self):
         # TODO: Top level version for XML schema
-        # TODO: Raw data about object reported (files, service, etc.) 
+        # TODO: Raw data about object reported (files, service, etc.)
         r = etree.Element('report')
         s = etree.Element('scaninfo')
         for k in self.get_info().keys():

@@ -62,24 +62,25 @@ class regkey:
                     self.parent_key = wpc.conf.cache.regkey(parent_keypath)
             #        print self.parent_key
             else:
-        #        print "[D] no parent_key dir"
+                #        print "[D] no parent_key dir"
                 self.parent_key = None
         #if self.parent_key:
-            #print "get_parent_key returning: " + str(self.parent_key.get_name())
+        #print "get_parent_key returning: " + str(self.parent_key.get_name())
         #else:
-            #print "get_parent_key returning: None"
+        #print "get_parent_key returning: None"
         return self.parent_key
 
     def get_issue_acl_for_perms(self, perms):
         if self.get_sd():
-            al = self.get_sd().get_acelist().get_untrusted().get_aces_with_perms(perms).get_aces()
+            al = self.get_sd().get_acelist().get_untrusted(
+            ).get_aces_with_perms(perms).get_aces()
             if al == []:
                 return None
             else:
                 return issueAcl(self.get_name(), al)
 
     def dump(self):
-        print self.as_text()
+        print(self.as_text())
 
     def get_all_subkeys(self):
         for key in self.get_subkeys():
@@ -92,7 +93,8 @@ class regkey:
         try:
             subkeys = win32api.RegEnumKeyEx(self.get_keyh())
             for subkey in subkeys:
-                subkey_objects.append(regkey(self.get_name() + "\\" + subkey[0]))
+                subkey_objects.append(
+                    regkey(self.get_name() + "\\" + subkey[0]))
         except:
             pass
         return subkey_objects
@@ -107,7 +109,8 @@ class regkey:
     def get_values(self):
         try:
             values = []
-            (subkey_count, value_count, mod_time) = win32api.RegQueryInfoKey(self.get_keyh())
+            (subkey_count, value_count,
+             mod_time) = win32api.RegQueryInfoKey(self.get_keyh())
             for i in range(0, value_count):
                 (s, o, t) = win32api.RegEnumValue(self.get_keyh(), i)
                 values.append(s)
@@ -117,14 +120,17 @@ class regkey:
 
     def get_name(self):
         if self.path == '':
-            return self.hive 
+            return self.hive
         return self.hive + "\\" + self.path
 
     def get_keyh(self):
         if not self.keyh:
             try:
                 # self.keyh = win32api.RegOpenKeyEx(getattr(win32con, self.get_hive()), self.get_path(), 0, win32con.KEY_ENUMERATE_SUB_KEYS | win32con.KEY_QUERY_VALUE | win32con.KEY_READ)
-                self.keyh = win32api.RegOpenKeyEx(getattr(win32con, self.get_hive()), self.get_path(), 0, win32con.KEY_ENUMERATE_SUB_KEYS | win32con.KEY_QUERY_VALUE | ntsecuritycon.READ_CONTROL)
+                self.keyh = win32api.RegOpenKeyEx(
+                    getattr(win32con, self.get_hive()), self.get_path(), 0,
+                    win32con.KEY_ENUMERATE_SUB_KEYS | win32con.KEY_QUERY_VALUE
+                    | ntsecuritycon.READ_CONTROL)
             except:
                 pass
                 # print "Can't open: " + self.get_name()
@@ -137,7 +143,9 @@ class regkey:
         if self.sd is None:
             sd = None
             try:
-                sd = win32api.RegGetKeySecurity(self.get_keyh(), win32security.DACL_SECURITY_INFORMATION | win32security.OWNER_SECURITY_INFORMATION)
+                sd = win32api.RegGetKeySecurity(
+                    self.get_keyh(), win32security.DACL_SECURITY_INFORMATION
+                    | win32security.OWNER_SECURITY_INFORMATION)
                 self.sd = wpc.conf.cache.sd('regkey', sd)
                 #print "[D]: Got security descriptor for " + self.get_name()
             except:

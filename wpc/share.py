@@ -23,15 +23,16 @@ class share:
     def get_info(self):
         if not self.info:
             try:
-                shareinfo = win32net.NetShareGetInfo(wpc.conf.remote_server, self.get_name(), 502)
+                shareinfo = win32net.NetShareGetInfo(wpc.conf.remote_server,
+                                                     self.get_name(), 502)
                 self.description = shareinfo['reserved']
                 self.passwd = shareinfo['passwd']
                 self.current_uses = shareinfo['current_uses']
                 self.max_uses = shareinfo['max_uses']
 
                 if shareinfo['path']:
-                #    self.path = File(shareinfo['path'])
-                #else:
+                    #    self.path = File(shareinfo['path'])
+                    #else:
                     self.path = shareinfo['path']
 
                 self.type = shareinfo['type']

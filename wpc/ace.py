@@ -18,10 +18,11 @@ class ace:
 
     def get_type(self):
         if not self.type:
-            for i in ("ACCESS_ALLOWED_ACE_TYPE", "ACCESS_DENIED_ACE_TYPE", "SYSTEM_AUDIT_ACE_TYPE", "SYSTEM_ALARM_ACE_TYPE"):
+            for i in ("ACCESS_ALLOWED_ACE_TYPE", "ACCESS_DENIED_ACE_TYPE",
+                      "SYSTEM_AUDIT_ACE_TYPE", "SYSTEM_ALARM_ACE_TYPE"):
                 if getattr(ntsecuritycon, i) == self.type_i:
                     # Abbreviate
-                    if i == "ACCESS_ALLOWED_ACE_TYPE":    
+                    if i == "ACCESS_ALLOWED_ACE_TYPE":
                         self.type = "ALLOW"
                         break
                     if i == "ACCESS_DENIED_ACE_TYPE":
@@ -68,8 +69,9 @@ class ace:
         return self.otype
 
     def resolve_perms(self):
-        if self.resolved_perms == []: 
-            for mod, perms_tuple in wpc.conf.all_perms[self.get_otype()].iteritems():
+        if self.resolved_perms == []:
+            for mod, perms_tuple in wpc.conf.all_perms[
+                    self.get_otype()].iteritems():
                 for perm in perms_tuple:
                     g = getattr(mod, perm)  # save a getattr call
                     if g & self.ace[1] == g:
@@ -90,7 +92,8 @@ class ace:
         self.perms = perms
 
     def has_perm(self, perm):
-        if self.get_type() == "ALLOW":  # we ignore DENY aces - mostly correct TODO they're actually checked before ALLOWs.  False negatives if user is blocked by DENY
+        if self.get_type(
+        ) == "ALLOW":  # we ignore DENY aces - mostly correct TODO they're actually checked before ALLOWs.  False negatives if user is blocked by DENY
             for p in self.get_perms():
                 if p == perm:
                     return 1
@@ -98,15 +101,19 @@ class ace:
 
     def get_perms_dangerous(self):
         if self.dperms == []:
-            if self.get_type() == "ALLOW":  # we ignore DENY aces - mostly correct TODO they're actually checked before ALLOWs.  False negatives if user is blocked by DENY
+            if self.get_type(
+            ) == "ALLOW":  # we ignore DENY aces - mostly correct TODO they're actually checked before ALLOWs.  False negatives if user is blocked by DENY
                 for p in self.get_perms():
                     for k in wpc.conf.dangerous_perms_write[self.get_otype()]:
-                        if p in wpc.conf.dangerous_perms_write[self.get_otype()][k]:
+                        if p in wpc.conf.dangerous_perms_write[
+                                self.get_otype()][k]:
                             self.dperms.append(p)
         return self.dperms
 
     def as_text(self):
-        return self.get_type() + " " + self.get_principal().get_fq_name() + ": \n    " + "\n    ".join(self.get_perms())
+        return self.get_type() + " " + self.get_principal().get_fq_name(
+        ) + ": \n    " + "\n    ".join(self.get_perms())
+
 
 #    def dangerous_as_text(self):
 #        return self.get_type() + " " + self.get_principal().get_fq_name() + ": \n  " + "\n  ".join(self.get_perms_dangerous())
